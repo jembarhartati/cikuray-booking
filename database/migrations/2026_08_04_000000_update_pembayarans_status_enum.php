@@ -12,7 +12,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        DB::statement("ALTER TABLE pembayarans MODIFY status VARCHAR(30) NOT NULL DEFAULT 'menunggu'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE pembayarans MODIFY status VARCHAR(30) NOT NULL DEFAULT 'menunggu'");
+        }
     }
 
     /**
@@ -20,6 +22,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        DB::statement("ALTER TABLE pembayarans MODIFY status ENUM('menunggu', 'berhasil', 'gagal', 'kedaluwarsa', 'ditolak') NOT NULL DEFAULT 'menunggu'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE pembayarans MODIFY status ENUM('menunggu', 'berhasil', 'gagal', 'kedaluwarsa', 'ditolak') NOT NULL DEFAULT 'menunggu'");
+        }
     }
 };
