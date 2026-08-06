@@ -43,26 +43,13 @@
 
     <!-- Floating Toggle Button -->
     <button onclick="toggleChat()" class="px-4 sm:px-5 h-12 sm:h-14 bg-gradient-to-r from-forest-600 to-forest-700 hover:from-forest-500 hover:to-forest-600 text-white rounded-xl sm:rounded-2xl shadow-xl flex items-center gap-2 active:scale-95 transition-all duration-255 border border-forest-500/20 group relative overflow-hidden">
-        <span class="text-lg sm:text-xl">💬</span>
-        <span class="text-[10px] sm:text-xs font-bold tracking-wide font-display uppercase whitespace-nowrap">Tanya Asisten AI 🤖</span>
+        <span class="text-[10px] sm:text-xs font-bold tracking-wide font-display uppercase whitespace-nowrap">💬 Tanya Info Pendakian (Chatbot AI) 🤖</span>
         <!-- Pulsing ring effect -->
         <span class="absolute inset-0 border-2 border-white/30 rounded-xl sm:rounded-2xl animate-ping opacity-60 pointer-events-none scale-105"></span>
     </button>
 </div>
 
 <script>
-    // Auto-open chatbot window after 2 seconds on page load (if not opened/interacted before in this session)
-    window.addEventListener('DOMContentLoaded', () => {
-        if (!sessionStorage.getItem('chatbot_opened_once')) {
-            setTimeout(() => {
-                const windowEl = document.getElementById('chatbot-window');
-                if (windowEl && windowEl.classList.contains('hidden')) {
-                    toggleChat();
-                }
-            }, 2000);
-        }
-    });
-
     function toggleChat() {
         const windowEl = document.getElementById('chatbot-window');
         sessionStorage.setItem('chatbot_opened_once', 'true');

@@ -74,17 +74,19 @@ class PembayaranController extends Controller
         abort_if($pembayaran->booking->user_id !== auth()->id(), 403);
 
         $request->validate([
-            'bukti_pembayaran' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'bukti_pembayaran' => 'required|file|mimes:jpg,jpeg,png,pdf|max:5120',
         ], [
             'bukti_pembayaran.required' => 'File bukti pembayaran wajib diunggah.',
             'bukti_pembayaran.mimes'    => 'File harus berformat JPG, PNG, atau PDF.',
-            'bukti_pembayaran.max'      => 'Ukuran file maksimal 2MB.',
+            'bukti_pembayaran.max'      => 'Ukuran file maksimal 5MB.',
+            'bukti_pembayaran.uploaded' => 'File gagal diunggah karena ukurannya melebihi batas server (maks. 5MB). Silakan pilih file yang lebih kecil.',
         ]);
 
         $path = $request->file('bukti_pembayaran')->store('bukti-pembayaran', 'public');
         $pembayaran->update([
             'bukti_pembayaran' => $path,
             'metode_pembayaran' => 'Transfer Manual',
+            'status'            => 'menunggu',
         ]);
 
         return back()->with('success', 'Bukti pembayaran berhasil diunggah. Menunggu verifikasi admin.');

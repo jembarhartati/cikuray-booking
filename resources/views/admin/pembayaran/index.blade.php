@@ -7,15 +7,18 @@
 @section('content')
 <div class="space-y-6 animate-fade-in">
     @php
-        $pendingPaymentsCount = \App\Models\Pembayaran::where('status', 'menunggu')->count();
+        $pendingPaymentsCount = \App\Models\Pembayaran::whereIn('status', ['menunggu', 'ditolak'])
+            ->where('metode_pembayaran', 'Transfer Manual')
+            ->whereNotNull('bukti_pembayaran')
+            ->count();
     @endphp
     @if($pendingPaymentsCount > 0)
         <div class="px-5 py-4 bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-250 rounded-2xl text-amber-800 text-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-fade-in shadow-sm">
             <div class="flex items-center gap-3">
                 <span class="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0 text-base">⚠️</span>
                 <div>
-                    <p class="font-bold text-amber-900">Pembayaran Menunggu Verifikasi</p>
-                    <p class="text-xs text-amber-700 font-medium">Terdapat {{ $pendingPaymentsCount }} pembayaran pending yang memerlukan konfirmasi dari admin.</p>
+                    <p class="font-bold text-amber-900">Pembayaran Menunggu Verifikasi / Action Admin</p>
+                    <p class="text-xs text-amber-700 font-medium">Terdapat {{ $pendingPaymentsCount }} pembayaran pending / perlu tindakan yang memerlukan konfirmasi dari admin.</p>
                 </div>
             </div>
             @if(request('status') !== 'menunggu')
@@ -27,15 +30,24 @@
     @endif
     <!-- Filter Bar -->
     <div class="card p-5">
-        <form action="{{ route('admin.pembayaran.index') }}" method="GET" class="flex flex-wrap md:flex-nowrap gap-4 items-end max-w-lg">
-            <div class="flex-1">
+        <form action="{{ route('admin.pembayaran.index') }}" method="GET" class="flex flex-wrap md:flex-nowrap gap-4 items-end">
+            <div class="flex-1 min-w-[180px]">
                 <label for="status" class="form-label text-xs">Filter Status Pembayaran</label>
                 <select name="status" id="status" class="form-input text-xs py-2.5">
                     <option value="">-- Semua Status --</option>
-                    <option value="menunggu" {{ request('status') === 'menunggu' ? 'selected' : '' }}>Menunggu Verifikasi</option>
+                    <option value="menunggu" {{ request('status') === 'menunggu' ? 'selected' : '' }}>Menunggu Verifikasi & Pending</option>
                     <option value="berhasil" {{ request('status') === 'berhasil' ? 'selected' : '' }}>Berhasil (Lunas)</option>
-                    <option value="gagal" {{ request('status') === 'gagal' ? 'selected' : '' }}>Gagal / Ditolak</option>
-                    <option value="kedaluwarsa" {{ request('status') === 'kedaluwarsa' ? 'selected' : '' }}>Kedaluwarsa</option>
+                    <option value="ditolak" {{ request('status') === 'ditolak' ? 'selected' : '' }}>Ditolak (Perlu Re-Upload)</option>
+                    <option value="gagal" {{ request('status') === 'gagal' ? 'selected' : '' }}>Gagal / Kedaluwarsa</option>
+                </select>
+            </div>
+
+            <div class="flex-1 min-w-[180px]">
+                <label for="metode" class="form-label text-xs">Metode Pembayaran</label>
+                <select name="metode" id="metode" class="form-input text-xs py-2.5">
+                    <option value="">-- Semua Metode --</option>
+                    <option value="manual" {{ request('metode') === 'manual' ? 'selected' : '' }}>🏦 Transfer Manual</option>
+                    <option value="otomatis" {{ request('metode') === 'otomatis' ? 'selected' : '' }}>⚡ Transfer Otomatis (VA/QRIS)</option>
                 </select>
             </div>
             
@@ -79,6 +91,9 @@
                     </thead>
                     <tbody class="divide-y divide-mountain-100">
                         @foreach($pembayarans as $pembayaran)
+                            @php
+                                $isManual = ($pembayaran->metode_pembayaran === 'Transfer Manual' || $pembayaran->metode_pembayaran === null);
+                            @endphp
                             <tr class="hover:bg-mountain-50/50 transition-colors cursor-pointer" onclick="toggleDetails('details-pembayaran-{{ $pembayaran->id }}', event)">
                                 <td class="table-td text-center">
                                     <span class="text-xs text-mountain-400 font-semibold" id="icon-details-pembayaran-{{ $pembayaran->id }}">▶</span>
@@ -90,15 +105,27 @@
                                     Rp{{ number_format($pembayaran->jumlah_bayar, 0, ',', '.') }}
                                 </td>
                                 <td class="table-td font-medium text-mountain-700 text-xs">
-                                    {{ $pembayaran->metode_pembayaran ?? 'Transfer Manual' }}
+                                    @if(!$isManual)
+                                        <span class="inline-flex items-center gap-1.5 font-bold text-forest-750 bg-forest-50 px-2.5 py-1 rounded-lg border border-forest-200">
+                                            ⚡ Transfer Otomatis (VA/QRIS)
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center gap-1.5 font-bold text-mountain-800">
+                                            🏦 Transfer Manual
+                                        </span>
+                                    @endif
                                 </td>
                                 <td class="table-td text-center" onclick="event.stopPropagation()">
-                                    @if($pembayaran->bukti_pembayaran)
-                                        <a href="{{ Storage::url($pembayaran->bukti_pembayaran) }}" target="_blank" class="badge-info text-[10px]">
+                                    @if(!$isManual)
+                                        <span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg">
+                                            Transfer Otomatis (VA/QRIS) ⚡
+                                        </span>
+                                    @elseif($pembayaran->bukti_pembayaran)
+                                        <a href="{{ Storage::url($pembayaran->bukti_pembayaran) }}" target="_blank" class="inline-flex items-center gap-1 font-bold text-xs bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-1 rounded-lg hover:bg-blue-100 transition-colors" title="Buka Bukti Transfer">
                                             Ada Bukti 📄
                                         </a>
                                     @else
-                                        <span class="text-mountain-400 text-xs">-</span>
+                                        <span class="text-mountain-400 text-xs font-medium">Belum Upload</span>
                                     @endif
                                 </td>
                                 <td class="table-td text-center">
@@ -106,15 +133,29 @@
                                         <span class="badge-success">Lunas</span>
                                     @elseif($pembayaran->status === 'menunggu')
                                         <span class="badge-warning">Pending</span>
+                                    @elseif($pembayaran->status === 'ditolak')
+                                        <span class="badge-warning bg-amber-100 text-amber-800 border-amber-300">Pending (Ditolak)</span>
                                     @else
                                         <span class="badge-danger">{{ ucfirst($pembayaran->status) }}</span>
                                     @endif
                                 </td>
                                 <td class="table-td text-center" onclick="event.stopPropagation()">
-                                    <div class="flex items-center justify-center gap-2">
+                                    <div class="flex items-center justify-center gap-1.5">
                                         <a href="{{ route('admin.pembayaran.show', $pembayaran) }}" class="px-3 py-1.5 bg-mountain-100 hover:bg-mountain-200 text-mountain-700 rounded-lg text-xs font-semibold transition-all duration-200">
                                             Detail
                                         </a>
+                                        @if($isManual && ($pembayaran->status === 'menunggu' || $pembayaran->status === 'ditolak'))
+                                            <form action="{{ route('admin.pembayaran.verifikasi', $pembayaran) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menerima / memverifikasi pembayaran ini?')">
+                                                @csrf
+                                                @method('PATCH')
+                                                <button type="submit" class="px-2.5 py-1.5 bg-forest-600 hover:bg-forest-700 text-white rounded-lg text-xs font-semibold transition-all duration-200" title="Terima Pembayaran">
+                                                    ✓ Terima
+                                                </button>
+                                            </form>
+                                            <a href="{{ route('admin.pembayaran.show', $pembayaran) }}#tolak-section" class="px-2.5 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-xs font-semibold transition-all duration-200" title="Tolak Pembayaran dengan Catatan">
+                                                ✕ Tolak
+                                            </a>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>

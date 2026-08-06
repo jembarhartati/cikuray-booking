@@ -9,7 +9,7 @@
     <!-- Date Range & Status Filters Card (Hidden when printing) -->
     <div class="card p-5 print:hidden">
         <form action="{{ route('admin.laporan.index') }}" method="GET" class="space-y-4">
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-3 gap-4">
                 <!-- Start Date -->
                 <div>
                     <label for="dari" class="form-label text-xs">Tanggal Awal</label>
@@ -33,22 +33,11 @@
                         <option value="belum_lunas" {{ $statusPembayaran === 'belum_lunas' ? 'selected' : '' }}>Belum Lunas / Gagal</option>
                     </select>
                 </div>
-
-                <!-- Filter Status Aktivitas Mendaki -->
-                <div>
-                    <label for="status_mendaki" class="form-label text-xs">Status Pendakian</label>
-                    <select name="status_mendaki" id="status_mendaki" class="form-input text-xs py-2.5">
-                        <option value="">Semua Aktivitas</option>
-                        <option value="belum_naik" {{ $statusMendaki === 'belum_naik' ? 'selected' : '' }}>Belum Naik (Menunggu)</option>
-                        <option value="mendaki" {{ $statusMendaki === 'mendaki' ? 'selected' : '' }}>Sedang Mendaki</option>
-                        <option value="sudah_turun" {{ $statusMendaki === 'sudah_turun' ? 'selected' : '' }}>Sudah Turun</option>
-                    </select>
-                </div>
             </div>
 
             <!-- Action Buttons -->
             <div class="flex flex-wrap md:flex-nowrap gap-3 pt-2 justify-end border-t border-mountain-100">
-                @if($statusPembayaran || $statusMendaki)
+                @if($statusPembayaran)
                     <a href="{{ route('admin.laporan.index') }}" class="btn-secondary py-2 px-4 text-xs justify-center whitespace-nowrap">
                         Reset Filter
                     </a>
@@ -56,12 +45,12 @@
                 <button type="submit" class="btn-primary py-2 px-5 text-xs justify-center whitespace-nowrap">
                     🔍 Terapkan Filter
                 </button>
-                <button type="button" onclick="exportTableToCSV('Laporan_Cikuray_{{ $dari }}_to_{{ $sampai }}.csv')" class="inline-flex items-center gap-2 px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl active:scale-95 transition-all duration-200 text-xs justify-center whitespace-nowrap">
+                <a href="{{ route('admin.laporan.csv', request()->all()) }}" class="inline-flex items-center gap-2 px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl active:scale-95 transition-all duration-200 text-xs justify-center whitespace-nowrap">
                     📥 Unduh Excel (CSV)
-                </button>
-                <button type="button" onclick="window.print()" class="btn-secondary py-2 px-5 text-xs justify-center bg-white border border-mountain-250 whitespace-nowrap">
-                    🖨️ Cetak / PDF
-                </button>
+                </a>
+                <a href="{{ route('admin.laporan.pdf', request()->all()) }}" target="_blank" class="btn-secondary py-2 px-5 text-xs justify-center bg-white border border-mountain-250 whitespace-nowrap inline-flex items-center gap-1.5">
+                    📄 Export / Preview PDF
+                </a>
             </div>
         </form>
     </div>
@@ -76,7 +65,7 @@
     </div>
 
     <!-- Summary Statistics Grid -->
-    <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         <!-- Stat Card 1 -->
         <div class="bg-white rounded-2xl shadow-sm border border-mountain-100 p-4 flex flex-col justify-between">
             <span class="text-[10px] text-mountain-400 font-bold uppercase tracking-wider">Total Booking</span>
@@ -109,16 +98,6 @@
 
         <!-- Stat Card 4 -->
         <div class="bg-white rounded-2xl shadow-sm border border-mountain-100 p-4 flex flex-col justify-between">
-            <span class="text-[10px] text-mountain-400 font-bold uppercase tracking-wider">Telah Check-In</span>
-            <div class="flex items-baseline justify-between mt-2">
-                <h3 class="text-xl font-display font-bold text-blue-700">{{ $totalCheckIn }}</h3>
-                <span class="text-sm">🥾</span>
-            </div>
-            <p class="text-[9px] text-blue-500 font-medium mt-1">naik ke gunung</p>
-        </div>
-
-        <!-- Stat Card 5 -->
-        <div class="bg-white rounded-2xl shadow-sm border border-mountain-100 p-4 flex flex-col justify-between">
             <span class="text-[10px] text-mountain-400 font-bold uppercase tracking-wider">Telah Check-Out</span>
             <div class="flex items-baseline justify-between mt-2">
                 <h3 class="text-xl font-display font-bold text-forest-650">{{ $totalCheckOut }}</h3>
@@ -133,22 +112,25 @@
         <!-- Table Listing bookings (Full Width) -->
         <div class="card">
             <div class="px-6 py-5 border-b border-mountain-100 flex items-center justify-between">
-                <h3 class="font-display font-bold text-mountain-800">Rincian Transaksi Booking</h3>
+                <h3 class="font-display font-bold text-mountain-800">Rincian Transaksi Booking Selesai (Check-Out)</h3>
                 <span class="text-[10px] text-mountain-400 font-semibold print:hidden">Menampilkan {{ $bookings->count() }} data transaksi</span>
             </div>
             <div class="overflow-x-auto">
                 @if($bookings->isEmpty())
                     <div class="p-12 text-center">
                         <span class="text-3xl">📭</span>
-                        <p class="text-sm text-mountain-400 mt-2">Tidak ada transaksi dalam periode filter ini.</p>
+                        <p class="text-sm text-mountain-400 mt-2">Tidak ada transaksi pendakian selesai (check-out) dalam periode filter ini.</p>
                     </div>
                 @else
                     <table class="w-full whitespace-nowrap" id="report-table">
                         <thead>
                             <tr class="bg-mountain-50 border-b border-mountain-100">
                                 <th class="table-th">Kode Booking</th>
-                                <th class="table-th">Ketua</th>
+                                <th class="table-th">Nama Ketua</th>
+                                <th class="table-th">Alamat Asal</th>
                                 <th class="table-th">Tanggal Naik</th>
+                                <th class="table-th">Tanggal Turun</th>
+                                <th class="table-th text-center">Jenis Pendakian</th>
                                 <th class="table-th text-center">Jumlah</th>
                                 <th class="table-th">Total Biaya</th>
                                 <th class="table-th text-center">Status Pembayaran</th>
@@ -157,10 +139,24 @@
                         </thead>
                         <tbody class="divide-y divide-mountain-100">
                             @foreach($bookings as $booking)
+                                @php
+                                    $tNaik = $booking->jadwal->tanggal;
+                                    $tTurun = $booking->tanggal_turun;
+                                    $selisih = $tTurun ? $tNaik->diffInDays($tTurun) : 0;
+                                @endphp
                                 <tr class="hover:bg-mountain-50/50 transition-colors">
                                     <td class="table-td font-semibold text-mountain-900 font-mono text-xs">{{ $booking->kode_booking }}</td>
-                                    <td class="table-td font-medium text-mountain-850">{{ $booking->nama_ketua }}</td>
+                                    <td class="table-td font-bold text-mountain-850">{{ $booking->nama_ketua }}</td>
+                                    <td class="table-td text-mountain-600 text-xs max-w-[200px] truncate" title="{{ $booking->alamat }}">{{ $booking->alamat }}</td>
                                     <td class="table-td text-mountain-600">{{ $booking->jadwal->tanggal->format('d/m/Y') }}</td>
+                                    <td class="table-td text-mountain-600">{{ $booking->tanggal_turun ? $booking->tanggal_turun->format('d/m/Y') : '-' }}</td>
+                                    <td class="table-td text-center">
+                                        @if($selisih == 0)
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 border border-blue-200">🏃 Tektok</span>
+                                        @else
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700 border border-amber-200">⛺ Camp</span>
+                                        @endif
+                                    </td>
                                     <td class="table-td text-center font-semibold">{{ $booking->jumlah_pendaki }} org</td>
                                     <td class="table-td font-bold text-mountain-850">Rp{{ number_format($booking->total_harga, 0, ',', '.') }}</td>
                                     <td class="table-td text-center">
@@ -180,7 +176,7 @@
                                             </span>
                                         @elseif($booking->eticket->check_in_at && $booking->eticket->check_out_at)
                                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-forest-50 text-forest-700 border border-forest-100">
-                                                Sudah Turun
+                                                Sudah Turun (Selesai)
                                             </span>
                                         @else
                                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-mountain-100 text-mountain-500">Belum Naik</span>
@@ -249,20 +245,88 @@
 
 <style>
 @media print {
-    body {
-        background: white !important;
-        color: black !important;
+    @page {
+        size: A4 landscape;
+        margin: 10mm;
     }
-    aside, header, #chatbot-window, form, button, nav, .print\:hidden {
+    
+    html, body {
+        background: #ffffff !important;
+        color: #0f172a !important;
+        font-size: 11px !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    aside, header, sidebar, #chatbot-window, form, button, nav, .print\:hidden {
         display: none !important;
     }
+
     main {
         padding: 0 !important;
         margin: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
     }
-    .card {
+
+    /* Container & Layout fixes */
+    .card, .glass-card {
         box-shadow: none !important;
-        border: 1px solid #cbd5e1 !important;
+        border: 1px solid #e2e8f0 !important;
+        background: #ffffff !important;
+        border-radius: 12px !important;
+        break-inside: avoid;
+        margin-bottom: 15px !important;
+    }
+
+    .overflow-x-auto {
+        overflow: visible !important;
+        overflow-x: visible !important;
+    }
+
+    /* Table Print Styling */
+    table, #report-table {
+        width: 100% !important;
+        table-layout: fixed !important;
+        border-collapse: collapse !important;
+        white-space: normal !important;
+    }
+
+    th.table-th, td.table-td {
+        white-space: normal !important;
+        word-wrap: break-word !important;
+        word-break: break-word !important;
+        padding: 8px 10px !important;
+        font-size: 10px !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+    }
+
+    th.table-th {
+        background-color: #f8fafc !important;
+        color: #334155 !important;
+    }
+
+    .truncate, .max-w-\[200px\] {
+        max-width: none !important;
+        white-space: normal !important;
+        overflow: visible !important;
+        text-overflow: clip !important;
+    }
+
+    /* Grid Layouts in Print */
+    .grid {
+        display: grid !important;
+    }
+
+    .grid-cols-2.md\:grid-cols-4 {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        gap: 10px !important;
+    }
+
+    .grid-cols-1.md\:grid-cols-2.lg\:grid-cols-3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 8px !important;
     }
 }
 </style>

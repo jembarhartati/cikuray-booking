@@ -55,6 +55,8 @@
                             <span class="badge-success">Berhasil (Lunas)</span>
                         @elseif($pembayaran->status === 'menunggu')
                             <span class="badge-warning">Menunggu Verifikasi</span>
+                        @elseif($pembayaran->status === 'ditolak')
+                            <span class="badge-warning bg-amber-100 text-amber-800 border-amber-300">Pending (Ditolak)</span>
                         @else
                             <span class="badge-danger">{{ ucfirst($pembayaran->status) }}</span>
                         @endif
@@ -67,47 +69,68 @@
                         </div>
                     @endif
                 </div>
-            </div>            <!-- Admin Actions Form -->
-            @if($pembayaran->status === 'menunggu')
+            </div>
+
+            <!-- Automatic Midtrans Payment Card / Manual Actions Form -->
+            @php
+                $isOtomatis = ($pembayaran->metode_pembayaran !== 'Transfer Manual' && $pembayaran->metode_pembayaran !== null);
+            @endphp
+            @if($isOtomatis)
+                <div class="card p-6 space-y-3 bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200">
+                    <h3 class="font-display font-bold text-emerald-950 text-sm flex items-center gap-2">
+                        <span>⚡</span> Pembayaran Otomatis (Midtrans / VA / QRIS)
+                    </h3>
+                    <p class="text-xs text-emerald-850 leading-relaxed">
+                        Transaksi ini menggunakan pembayaran elektronik otomatis. Sistem Midtrans memverifikasi transaksi dan menerbitkan e-ticket secara otomatis tanpa memerlukan tindakan manual admin.
+                    </p>
+                    @if($pembayaran->midtrans_response)
+                        <div class="text-[11px] font-mono bg-white/90 p-3 rounded-xl border border-emerald-200 text-emerald-950 space-y-1">
+                            <span class="font-bold text-[10px] uppercase text-emerald-700 block mb-1">Rincian Respon Midtrans Gateway:</span>
+                            <p>Status Transaksi: <strong class="text-emerald-800">{{ $pembayaran->midtrans_response['transaction_status'] ?? '-' }}</strong></p>
+                            <p>Tipe Pembayaran: <strong>{{ strtoupper($pembayaran->midtrans_response['payment_type'] ?? '-') }}</strong></p>
+                            <p>Waktu Transaksi: <strong>{{ $pembayaran->midtrans_response['transaction_time'] ?? '-' }}</strong></p>
+                        </div>
+                    @endif
+                </div>
+            @elseif($pembayaran->status === 'menunggu' || $pembayaran->status === 'ditolak')
                 <div class="card p-6 space-y-4">
-                    <h3 class="font-display font-bold text-mountain-800 text-sm border-b border-mountain-100 pb-2">Tindakan Persetujuan</h3>
-                    <p class="text-xs text-mountain-500">Silakan periksa bukti transfer di sebelah kanan sebelum memverifikasi pembayaran ini.</p>
+                    <h3 class="font-display font-bold text-mountain-800 text-sm border-b border-mountain-100 pb-2">Tindakan Persetujuan Pembayaran</h3>
+                    
+                    @if($pembayaran->status === 'ditolak' || $pembayaran->catatan_penolakan)
+                        <div class="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 space-y-1">
+                            <p class="font-bold flex items-center gap-1 text-amber-900">⚠️ Pembayaran Pernah Ditolak</p>
+                            <p class="text-[11px] text-amber-700"><strong>Catatan Terakhir:</strong> "{{ $pembayaran->catatan_penolakan }}"</p>
+                            <p class="text-[11px] text-amber-800 pt-0.5">Status tetap <strong>PENDING</strong>. Jika dana kini sudah masuk ke rekening admin, Anda dapat menekan tombol <strong>Terima Pembayaran</strong> di bawah ini.</p>
+                        </div>
+                    @else
+                        <p class="text-xs text-mountain-500">Silakan periksa bukti transfer di sebelah kanan sebelum memverifikasi pembayaran ini.</p>
+                    @endif
                     
                     <!-- Verify Action -->
-                    <form action="{{ route('admin.pembayaran.verifikasi', $pembayaran) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menyetujui pembayaran ini?')">
+                    <form action="{{ route('admin.pembayaran.verifikasi', $pembayaran) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menyetujui / menerima pembayaran ini?')">
                         @csrf
                         @method('PATCH')
-                        <button type="submit" class="btn-primary w-full py-3 justify-center text-xs shadow-md font-bold">
-                            Terima Pembayaran ✓
+                        <button type="submit" class="btn-primary w-full py-3 justify-center text-xs shadow-md font-bold bg-forest-600 hover:bg-forest-700 text-white">
+                            Terima Pembayaran (Ubah Jadi Diterima) ✓
                         </button>
                     </form>
 
                     <div class="border-t border-mountain-100 my-4"></div>
 
                     <!-- Reject Action -->
-                    <form action="{{ route('admin.pembayaran.tolak', $pembayaran) }}" method="POST" class="space-y-3" onsubmit="return confirm('Apakah Anda yakin ingin menolak pembayaran ini?')">
+                    <form action="{{ route('admin.pembayaran.tolak', $pembayaran) }}" method="POST" id="tolak-section" class="space-y-3" onsubmit="return confirm('Apakah Anda yakin ingin menolak pembayaran ini?')">
                         @csrf
                         @method('PATCH')
                         
                         <div>
                             <label for="catatan_penolakan" class="block text-xs font-bold text-mountain-600 uppercase mb-1">Catatan Penolakan <span class="text-red-500">*</span></label>
-                            <textarea name="catatan_penolakan" id="catatan_penolakan" rows="2" class="form-input text-xs" placeholder="Masukkan alasan penolakan pembayaran..." required></textarea>
+                            <textarea name="catatan_penolakan" id="catatan_penolakan" rows="2" class="form-input text-xs" placeholder="Masukkan alasan penolakan pembayaran..." required>{{ old('catatan_penolakan', $pembayaran->catatan_penolakan) }}</textarea>
                         </div>
 
                         <button type="submit" class="btn-danger w-full py-3 justify-center text-xs shadow-md bg-red-650 hover:bg-red-700 text-white font-bold">
                             Tolak Pembayaran ✕
                         </button>
                     </form>
-                </div>
-            @elseif($pembayaran->status === 'gagal')
-                <div class="card p-6 space-y-4">
-                    <h3 class="font-display font-bold text-red-700 text-sm border-b border-red-100 pb-2 flex items-center gap-2">
-                        <span>❌</span> Pembayaran Ditolak
-                    </h3>
-                    <div class="p-4 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700">
-                        <strong class="block mb-1">Catatan Penolakan:</strong>
-                        <p class="leading-relaxed">{{ $pembayaran->catatan_penolakan ?? 'Tidak ada catatan.' }}</p>
-                    </div>
                 </div>
             @endif
         </div>
@@ -117,7 +140,20 @@
             <h3 class="font-display font-bold text-mountain-800 text-sm border-b border-mountain-100 pb-2 flex-shrink-0">Bukti Pembayaran</h3>
             
             <div class="flex-1 min-h-[300px] bg-mountain-50 border border-mountain-200 rounded-2xl flex items-center justify-center overflow-hidden p-2">
-                @if($pembayaran->bukti_pembayaran)
+                @if($isOtomatis)
+                    <div class="text-center p-6 space-y-3 my-auto">
+                        <div class="w-16 h-16 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center text-3xl mx-auto shadow-sm">
+                            💳
+                        </div>
+                        <h4 class="font-bold text-mountain-800 text-base">Pembayaran Otomatis Digital</h4>
+                        <p class="text-xs text-mountain-500 max-w-xs mx-auto">
+                            Pembayaran diproses secara elektronik via Midtrans Gateway. Bukti transfer fisik tidak diperlukan.
+                        </p>
+                        <span class="inline-flex items-center px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-bold">
+                            Status: {{ ucfirst($pembayaran->status) }}
+                        </span>
+                    </div>
+                @elseif($pembayaran->bukti_pembayaran)
                     @php
                         $ext = strtolower(pathinfo($pembayaran->bukti_pembayaran, PATHINFO_EXTENSION));
                     @endphp

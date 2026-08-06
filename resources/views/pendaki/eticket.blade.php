@@ -94,6 +94,22 @@
                 </div>
             </div>
 
+            <!-- Kontak Darurat Basecamp -->
+            <div class="p-3.5 bg-red-50 border border-red-200 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-xl bg-red-100 flex items-center justify-center text-red-600 font-bold text-sm flex-shrink-0">
+                        🚨
+                    </div>
+                    <div>
+                        <span class="font-bold text-red-900 block text-xs">Kontak Darurat Basecamp</span>
+                        <span class="text-red-700 text-[11px]">Hubungi jika terjadi kendala / keadaan darurat di jalur</span>
+                    </div>
+                </div>
+                <a href="tel:08976869943" class="px-3.5 py-1.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-xs inline-flex items-center gap-1.5 shadow-sm transition-all duration-200 self-start sm:self-auto">
+                    📞 0897-6869-943
+                </a>
+            </div>
+
             <!-- Members -->
             <div class="space-y-2">
                 <span class="text-mountain-400 block text-[10px] font-bold uppercase tracking-wider">Daftar Anggota Rombongan</span>

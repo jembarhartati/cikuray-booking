@@ -97,4 +97,6 @@ Route::middleware(['auth', 'role:admin'])
 
         // Laporan
         Route::get('/laporan', [Admin\LaporanController::class, 'index'])->name('laporan.index');
+        Route::get('/laporan/pdf', [Admin\LaporanController::class, 'pdf'])->name('laporan.pdf');
+        Route::get('/laporan/csv', [Admin\LaporanController::class, 'csv'])->name('laporan.csv');
     });

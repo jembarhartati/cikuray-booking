@@ -168,8 +168,9 @@
                     <div>
                         <label for="jumlah_pendaki" class="form-label">Jumlah Pendaki <span class="text-red-500">*</span></label>
                         <input type="number" name="jumlah_pendaki" id="jumlah_pendaki" class="form-input" 
-                               min="2" value="{{ old('jumlah_pendaki', 2) }}" required oninput="generateMemberInputs()">
+                               min="0" value="{{ old('jumlah_pendaki', 0) }}" required oninput="generateMemberInputs()">
                         <span class="text-[11px] text-mountain-400 mt-1 block">Min. 2 orang per booking</span>
+                        <p id="jumlah-pendaki-warning" class="hidden mt-1 text-xs text-red-500 font-semibold">⚠️ Minimal 2 orang dalam satu booking!</p>
                         @error('jumlah_pendaki')
                             <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                         @enderror
@@ -179,9 +180,9 @@
                         <div class="bg-gradient-to-r from-forest-50 to-emerald-50 border border-forest-200/60 p-4 rounded-xl flex items-center justify-between">
                             <div>
                                 <span class="text-[11px] text-forest-600 font-bold uppercase tracking-wider block">Total Biaya</span>
-                                <span id="price-per-person-display" class="text-xs text-mountain-400 font-medium">Rp30.000 / orang</span>
+                                <span id="price-per-person-display" class="text-xs text-mountain-400 font-medium">Rp30.000 / orang / hari</span>
                             </div>
-                            <span class="text-2xl font-bold font-display text-forest-700" id="total-price-display">Rp60.000</span>
+                            <span class="text-2xl font-bold font-display text-forest-700" id="total-price-display">Rp0</span>
                         </div>
                     </div>
                 </div>
@@ -300,15 +301,18 @@
     }
 
     function updatePrice() {
+        const BASE_PRICE = 30000;
         const countInput = document.getElementById('jumlah_pendaki');
-        let count = parseInt(countInput.value) || 2;
+        let count = parseInt(countInput.value) || 0;
 
         const select = document.getElementById('jadwal_id');
         const selectedOption = select.options[select.selectedIndex];
         const tanggalNaikStr = (selectedOption && selectedOption.value) ? selectedOption.getAttribute('data-tanggal') : '';
         const tanggalTurunStr = document.getElementById('tanggal_turun').value;
 
-        let pricePerPerson = 30000;
+        // Hitung jumlah malam: tektok (0 malam) & camp 1 malam = 1x, camp 2 malam = 2x, dst.
+        let pengali = 1;
+        let jumlahMalam = 0;
         if (tanggalNaikStr && tanggalTurunStr) {
             const dNaik = new Date(tanggalNaikStr);
             const dTurun = new Date(tanggalTurunStr);
@@ -316,14 +320,22 @@
             dTurun.setHours(0,0,0,0);
             const diffTime = dTurun - dNaik;
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            if (diffDays >= 2) {
-                pricePerPerson = 60000;
-            }
+            jumlahMalam = diffDays;
+            // 0 malam (tektok) atau 1 malam (camp) = 1x, 2 malam = 2x, 3 malam = 3x, dst.
+            pengali = Math.max(1, diffDays);
         }
+
+        const pricePerPerson = BASE_PRICE * pengali;
 
         const priceDisplay = document.getElementById('price-per-person-display');
         if (priceDisplay) {
-            priceDisplay.textContent = 'Rp' + pricePerPerson.toLocaleString('id-ID') + ' / orang';
+            if (jumlahMalam === 0) {
+                priceDisplay.textContent = 'Rp' + pricePerPerson.toLocaleString('id-ID') + ' / orang (Tektok / PP)';
+            } else if (jumlahMalam === 1) {
+                priceDisplay.textContent = 'Rp' + pricePerPerson.toLocaleString('id-ID') + ' / orang (Camp 1 malam)';
+            } else {
+                priceDisplay.textContent = 'Rp' + BASE_PRICE.toLocaleString('id-ID') + ' × ' + pengali + ' malam = Rp' + pricePerPerson.toLocaleString('id-ID') + ' / orang';
+            }
         }
 
         const total = count * pricePerPerson;
@@ -365,10 +377,24 @@
 
     function generateMemberInputs() {
         const countInput = document.getElementById('jumlah_pendaki');
-        let count = parseInt(countInput.value) || 2;
+        let count = parseInt(countInput.value) || 0;
+        const warningEl = document.getElementById('jumlah-pendaki-warning');
         
-        if (count < 2) count = 2;
-        countInput.value = count;
+        // Tampilkan peringatan jika jumlah pendaki diisi 1
+        if (count >= 1 && count < 2) {
+            warningEl.classList.remove('hidden');
+            countInput.classList.add('border-red-500', 'ring-2', 'ring-red-200');
+        } else {
+            warningEl.classList.add('hidden');
+            countInput.classList.remove('border-red-500', 'ring-2', 'ring-red-200');
+        }
+
+        if (count < 2) {
+            // Jangan generate form anggota jika kurang dari 2
+            document.getElementById('members-container').innerHTML = '';
+            updatePrice();
+            return;
+        }
 
         updatePrice();
 
@@ -462,6 +488,23 @@
                 if (!firstErrorField) firstErrorField = field;
             }
         });
+
+        // Validasi khusus jumlah pendaki minimal 2
+        const jumlahPendakiField = document.getElementById('jumlah_pendaki');
+        const jumlahPendakiVal = parseInt(jumlahPendakiField.value) || 0;
+        if (jumlahPendakiVal < 2) {
+            hasError = true;
+            jumlahPendakiField.classList.add('border-red-500', 'ring-2', 'ring-red-200');
+            // Hapus pesan error generic sebelumnya di field ini jika ada
+            const existingErr = jumlahPendakiField.parentNode.querySelector('.js-validation-error');
+            if (existingErr) existingErr.remove();
+            // Tampilkan pesan error khusus
+            const errorMsg = document.createElement('p');
+            errorMsg.className = 'js-validation-error mt-1 text-xs text-red-500 font-semibold';
+            errorMsg.textContent = '⚠️ Minimal 2 orang dalam satu booking!';
+            jumlahPendakiField.parentNode.appendChild(errorMsg);
+            if (!firstErrorField) firstErrorField = jumlahPendakiField;
+        }
 
         if (hasError) {
             e.preventDefault();

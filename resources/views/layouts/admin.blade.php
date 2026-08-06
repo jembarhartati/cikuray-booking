@@ -41,7 +41,10 @@
                         <span>💳</span> Kelola Pembayaran
                     </span>
                     @php
-                        $pendingPaymentsCount = \App\Models\Pembayaran::where('status', 'menunggu')->count();
+                        $pendingPaymentsCount = \App\Models\Pembayaran::whereIn('status', ['menunggu', 'ditolak'])
+                            ->where('metode_pembayaran', 'Transfer Manual')
+                            ->whereNotNull('bukti_pembayaran')
+                            ->count();
                     @endphp
                     @if($pendingPaymentsCount > 0)
                         <span class="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full min-w-[20px] text-center">

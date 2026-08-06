@@ -104,10 +104,9 @@ class BookingController extends Controller
         $tanggalTurun = \Carbon\Carbon::parse($request->tanggal_turun)->startOfDay();
         $selisihHari = $tanggalNaik->diffInDays($tanggalTurun);
 
-        $hargaPerOrang = 30000;
-        if ($selisihHari >= 2) {
-            $hargaPerOrang = 60000;
-        }
+        // Hitung harga: tektok (0 malam) & camp 1 malam = 30k, camp 2 malam = 60k, 3 malam = 90k, dst.
+        $jumlahMalam = max(1, $selisihHari); // selisih 0 atau 1 = 1x, selisih 2 = 2x, dst.
+        $hargaPerOrang = 30000 * $jumlahMalam;
 
         $totalHarga = $request->jumlah_pendaki * $hargaPerOrang;
         $alamatCombined = $request->provinsi . ', ' . $request->kabupaten . ' - ' . $request->detail_alamat;
