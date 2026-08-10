@@ -14,9 +14,9 @@
                 <h2 class="text-3xl font-display font-extrabold">E-Ticket Digital</h2>
                 <p class="text-mountain-300 text-sm mt-1">Tunjukkan e-ticket ini ke petugas loket basecamp Cintanagara.</p>
             </div>
-            <button onclick="window.print()" class="print:hidden inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm rounded-xl shadow-lg hover:shadow-emerald-500/25 transition-all duration-200 cursor-pointer self-start sm:self-auto">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H7a2 2 0 00-2 2v4h10z"/></svg>
-                Cetak / Download PDF
+            <button onclick="downloadEticketImage()" id="btn-download-top" class="print:hidden inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white font-bold text-sm rounded-xl shadow-lg hover:shadow-emerald-500/25 transition-all duration-200 cursor-pointer self-start sm:self-auto">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                <span>Download Gambar (PNG)</span>
             </button>
         </div>
     </div>
@@ -24,7 +24,7 @@
 
 <!-- ═══════════ E-TICKET ═══════════ -->
 <section class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 relative z-10 pb-8 print:max-w-full print:p-0">
-    <div class="bg-white border-2 border-forest-600 rounded-3xl overflow-hidden shadow-2xl relative">
+    <div id="eticket-card" class="bg-white border-2 border-forest-600 rounded-3xl overflow-hidden shadow-2xl relative">
         <!-- Stamp -->
         <div class="absolute right-4 top-4 md:right-8 md:top-8 border-4 border-dashed border-forest-600 text-forest-600 font-display font-black text-xl md:text-2xl uppercase tracking-widest px-3 py-1 rounded-xl rotate-12 select-none opacity-80">
             LUNAS ✓
@@ -142,14 +142,56 @@
         </div>
     </div>
 
-    <!-- Action Buttons (Print / Download) -->
-    <div class="mt-6 flex justify-center print:hidden">
-        <button onclick="window.print()" class="inline-flex items-center justify-center gap-2.5 px-6 py-3 bg-forest-600 hover:bg-forest-700 text-white font-bold text-sm rounded-2xl shadow-xl hover:shadow-forest-600/30 transition-all duration-200 cursor-pointer transform hover:-translate-y-0.5">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H7a2 2 0 00-2 2v4h10z"/></svg>
-            Cetak / Simpan PDF E-Ticket
+    <!-- Action Buttons (PNG Download) -->
+    <div class="mt-6 flex flex-col sm:flex-row justify-center gap-3 print:hidden">
+        <button onclick="downloadEticketImage()" id="btn-download-bottom" class="inline-flex items-center justify-center gap-2.5 px-6 py-3.5 bg-forest-600 hover:bg-forest-700 active:bg-forest-800 text-white font-bold text-sm rounded-2xl shadow-xl hover:shadow-forest-600/30 transition-all duration-200 cursor-pointer transform hover:-translate-y-0.5 w-full sm:w-auto">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            <span>Simpan Gambar E-Ticket (PNG)</span>
         </button>
     </div>
 </section>
+
+<!-- HTML2Canvas CDN for PNG download -->
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script>
+function downloadEticketImage() {
+    const card = document.getElementById('eticket-card');
+    const btnTop = document.getElementById('btn-download-top');
+    const btnBottom = document.getElementById('btn-download-bottom');
+    
+    const setButtonState = (loading) => {
+        if (btnTop) {
+            btnTop.disabled = loading;
+            btnTop.querySelector('span').innerText = loading ? '⏳ Mengunduh...' : 'Download Gambar (PNG)';
+        }
+        if (btnBottom) {
+            btnBottom.disabled = loading;
+            btnBottom.querySelector('span').innerText = loading ? '⏳ Mengunduh Gambar...' : 'Simpan Gambar E-Ticket (PNG)';
+        }
+    };
+
+    setButtonState(true);
+
+    html2canvas(card, {
+        scale: 3, // High DPI for crisp text & borders on smartphone screens
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        logging: false
+    }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = 'E-Ticket-Cikuray-{{ $eticket->kode_tiket }}.png';
+        link.href = canvas.toDataURL('image/png', 1.0);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setButtonState(false);
+    }).catch(err => {
+        console.error(err);
+        alert('Gagal membuat gambar E-Ticket. Silakan coba beberapa saat lagi.');
+        setButtonState(false);
+    });
+}
+</script>
 
 <style>
 @media print {
