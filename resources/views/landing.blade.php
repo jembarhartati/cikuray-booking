@@ -53,7 +53,7 @@
                 }
             @endphp
             @if($videoFile)
-                <video autoplay muted loop playsinline preload="auto" poster="{{ asset('images/gunung-cikuray.png') }}" class="landing-video-element" id="hero-bg-video">
+                <video autoplay muted loop playsinline class="landing-video-element">
                     <source src="{{ asset('videos/' . $videoFile) }}" type="{{ $videoType }}">
                 </video>
             @else
@@ -517,16 +517,7 @@
         document.querySelectorAll('.landing-info-card, .landing-detail-card, .landing-rule-card, .landing-step, .landing-gallery-item').forEach(el => {
             el.classList.add('landing-animate-on-scroll');
             observer.observe(el);
-        // Force play video background for mobile & desktop autoplay policy
-        const bgVideo = document.getElementById('hero-bg-video');
-        if (bgVideo) {
-            const playPromise = bgVideo.play();
-            if (playPromise !== undefined) {
-                playPromise.catch(function(error) {
-                    console.log('Video autoplay deferred:', error);
-                });
-            }
-        }
+        });
     </script>
     <!-- Chatbot Widget -->
     @include('components.chatbot')
