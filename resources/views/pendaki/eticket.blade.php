@@ -24,31 +24,34 @@
 
 <!-- ═══════════ E-TICKET ═══════════ -->
 <section class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 relative z-10 pb-8 print:max-w-full print:p-0">
-    <div id="eticket-card" class="bg-white border-2 border-forest-600 rounded-3xl overflow-hidden shadow-2xl relative">
-        <!-- Stamp -->
-        <div class="absolute right-4 top-4 md:right-8 md:top-8 border-4 border-dashed border-forest-600 text-forest-600 font-display font-black text-xl md:text-2xl uppercase tracking-widest px-3 py-1 rounded-xl rotate-12 select-none opacity-80">
-            LUNAS ✓
-        </div>
-
+    <div id="eticket-card" class="bg-white border-2 border-forest-600 rounded-3xl overflow-hidden shadow-2xl relative" style="font-family: system-ui, -apple-system, sans-serif;">
+        
         <!-- Header -->
-        <div class="bg-gradient-to-r from-forest-800 via-forest-900 to-mountain-900 p-6 md:p-8 text-white relative overflow-hidden">
-            <div class="absolute inset-0 opacity-10">
-                <div class="absolute -right-8 -top-8 w-32 h-32 border-2 border-white/20 rounded-full"></div>
-                <div class="absolute -right-4 -bottom-4 w-24 h-24 border-2 border-white/10 rounded-full"></div>
-            </div>
-            <div class="flex items-center gap-4 relative">
-                <div class="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center text-3xl backdrop-blur-sm">
-                    🏔️
+        <div class="bg-[#0f3822] p-6 md:p-8 text-white relative">
+            <div class="flex items-center justify-between gap-4">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 md:w-14 md:h-14 bg-white/15 rounded-2xl flex items-center justify-center text-2xl md:text-3xl flex-shrink-0">
+                        🏔️
+                    </div>
+                    <div>
+                        <h2 class="text-lg md:text-xl font-bold text-white uppercase tracking-wider leading-tight block mb-1">
+                            E-TICKET PENDAKIAN
+                        </h2>
+                        <p class="text-xs text-emerald-200 font-normal leading-normal block">
+                            Gunung Cikuray via Basecamp Cintanagara
+                        </p>
+                    </div>
                 </div>
-                <div>
-                    <h2 class="text-xl md:text-2xl font-display font-extrabold tracking-wide uppercase">E-Ticket Pendakian</h2>
-                    <p class="text-xs text-forest-200 mt-0.5">Gunung Cikuray via Basecamp Cintanagara</p>
+
+                <!-- Stamp LUNAS -->
+                <div class="bg-emerald-600 text-white font-black text-xs md:text-sm uppercase tracking-widest px-3 py-1.5 rounded-xl border border-emerald-400 shadow-md flex-shrink-0">
+                    ✓ LUNAS
                 </div>
             </div>
         </div>
 
         <!-- Body -->
-        <div class="p-6 md:p-8 space-y-6">
+        <div class="p-6 md:p-8 space-y-6 bg-white">
             <!-- Info Grid -->
             @php
                 $tanggalNaik = $eticket->booking->jadwal->tanggal;
@@ -56,88 +59,92 @@
                 $selisihHari = $tanggalTurun ? $tanggalNaik->diffInDays($tanggalTurun) : 0;
                 $isTektok = $selisihHari == 0;
             @endphp
-            <div class="grid grid-cols-2 md:grid-cols-3 gap-5 text-sm border-b border-mountain-100 pb-6">
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-5 text-sm border-b border-gray-100 pb-6">
                 <div>
-                    <span class="text-mountain-400 block text-[10px] font-bold uppercase tracking-wider mb-1">Nomor Tiket</span>
-                    <span class="font-bold text-mountain-800 font-mono text-sm">{{ $eticket->kode_tiket }}</span>
+                    <span class="text-gray-400 block text-[10px] font-bold uppercase tracking-wider mb-1">Nomor Tiket</span>
+                    <span class="font-bold text-gray-900 font-mono text-sm leading-tight block">{{ $eticket->kode_tiket }}</span>
                 </div>
                 <div>
-                    <span class="text-mountain-400 block text-[10px] font-bold uppercase tracking-wider mb-1">Kode Booking</span>
-                    <span class="font-bold text-mountain-800 font-mono text-sm">{{ $eticket->booking->kode_booking }}</span>
+                    <span class="text-gray-400 block text-[10px] font-bold uppercase tracking-wider mb-1">Kode Booking</span>
+                    <span class="font-bold text-gray-900 font-mono text-sm leading-tight block">{{ $eticket->booking->kode_booking }}</span>
                 </div>
                 <div>
-                    <span class="text-mountain-400 block text-[10px] font-bold uppercase tracking-wider mb-1">Tipe Pendakian</span>
+                    <span class="text-gray-400 block text-[10px] font-bold uppercase tracking-wider mb-1">Tipe Pendakian</span>
                     @if($isTektok)
-                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200">🏃 TEKTOK</span>
+                        <span class="inline-block px-2.5 py-1 rounded-md text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200 leading-none">🏃 TEKTOK</span>
                     @else
-                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700 border border-amber-200">⛺ CAMP</span>
+                        <span class="inline-block px-2.5 py-1 rounded-md text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 leading-none">⛺ CAMP</span>
                     @endif
                 </div>
                 <div>
-                    <span class="text-mountain-400 block text-[10px] font-bold uppercase tracking-wider mb-1">Tanggal Naik</span>
-                    <span class="font-bold text-mountain-800">{{ $eticket->booking->jadwal->tanggal->format('d/m/Y') }}</span>
+                    <span class="text-gray-400 block text-[10px] font-bold uppercase tracking-wider mb-1">Tanggal Naik</span>
+                    <span class="font-bold text-gray-800 leading-tight block">{{ $eticket->booking->jadwal->tanggal->format('d/m/Y') }}</span>
                 </div>
                 <div>
-                    <span class="text-mountain-400 block text-[10px] font-bold uppercase tracking-wider mb-1">Tanggal Turun</span>
-                    <span class="font-bold text-mountain-800">{{ $tanggalTurun ? $tanggalTurun->format('d/m/Y') : '-' }}</span>
+                    <span class="text-gray-400 block text-[10px] font-bold uppercase tracking-wider mb-1">Tanggal Turun</span>
+                    <span class="font-bold text-gray-800 leading-tight block">{{ $tanggalTurun ? $tanggalTurun->format('d/m/Y') : '-' }}</span>
                 </div>
                 <div>
-                    <span class="text-mountain-400 block text-[10px] font-bold uppercase tracking-wider mb-1">Jumlah Anggota</span>
-                    <span class="font-bold text-mountain-800">{{ $eticket->booking->jumlah_pendaki }} orang</span>
+                    <span class="text-gray-400 block text-[10px] font-bold uppercase tracking-wider mb-1">Jumlah Anggota</span>
+                    <span class="font-bold text-gray-800 leading-tight block">{{ $eticket->booking->jumlah_pendaki }} orang</span>
                 </div>
             </div>
 
             <!-- Leader Details -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 border-b border-mountain-100 pb-6 text-sm">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 border-b border-gray-100 pb-6 text-sm">
                 <div>
-                    <span class="text-mountain-400 block text-[10px] font-bold uppercase tracking-wider mb-1">Ketua Rombongan</span>
-                    <p class="font-semibold text-mountain-800">{{ $eticket->booking->nama_ketua }}</p>
-                    <p class="text-mountain-500 text-xs mt-0.5">Telp: {{ $eticket->booking->no_telepon }}</p>
+                    <span class="text-gray-400 block text-[10px] font-bold uppercase tracking-wider mb-1">Ketua Rombongan</span>
+                    <p class="font-bold text-gray-900 leading-snug">{{ $eticket->booking->nama_ketua }}</p>
+                    <p class="text-gray-500 text-xs mt-0.5">Telp: {{ $eticket->booking->no_telepon }}</p>
                 </div>
                 <div>
-                    <span class="text-mountain-400 block text-[10px] font-bold uppercase tracking-wider mb-1">Alamat</span>
-                    <p class="text-mountain-700 text-xs">{{ $eticket->booking->alamat }}</p>
+                    <span class="text-gray-400 block text-[10px] font-bold uppercase tracking-wider mb-1">Alamat</span>
+                    <p class="text-gray-700 text-xs leading-relaxed">{{ $eticket->booking->alamat }}</p>
                 </div>
             </div>
 
             <!-- Kontak Darurat Basecamp -->
-            <div class="p-3.5 bg-red-50 border border-red-200 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 rounded-xl bg-red-100 flex items-center justify-center text-red-600 font-bold text-sm flex-shrink-0">
+            <div class="p-3.5 bg-red-50 border border-red-200 rounded-xl flex items-center justify-between gap-3 text-xs">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center text-red-600 font-bold text-sm flex-shrink-0">
                         🚨
                     </div>
                     <div>
-                        <span class="font-bold text-red-900 block text-xs">Kontak Darurat Basecamp</span>
-                        <span class="text-red-700 text-[11px]">Hubungi jika terjadi kendala / keadaan darurat di jalur</span>
+                        <span class="font-bold text-red-900 block text-xs leading-tight">Kontak Darurat Basecamp</span>
+                        <span class="text-red-700 text-[11px] block mt-0.5">Hubungi jika terjadi kendala / keadaan darurat di jalur</span>
                     </div>
                 </div>
-                <a href="tel:08976869943" class="px-3.5 py-1.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-xs inline-flex items-center gap-1.5 shadow-sm transition-all duration-200 self-start sm:self-auto">
+                <div class="px-3 py-1.5 bg-red-600 text-white font-bold rounded-lg text-xs flex-shrink-0 shadow-sm">
                     📞 0897-6869-943
-                </a>
+                </div>
             </div>
 
             <!-- Members -->
             <div class="space-y-2">
-                <span class="text-mountain-400 block text-[10px] font-bold uppercase tracking-wider">Daftar Anggota Rombongan</span>
+                <span class="text-gray-400 block text-[10px] font-bold uppercase tracking-wider">Daftar Anggota Rombongan</span>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
                     @foreach($eticket->booking->anggota as $anggota)
-                        <div class="flex items-center gap-2 text-xs py-2 px-3 bg-mountain-50 border border-mountain-100 rounded-lg">
-                            <span class="w-6 h-6 bg-gradient-to-br from-forest-100 to-emerald-50 rounded-md flex items-center justify-center font-bold text-forest-700 text-[10px] border border-forest-200">{{ $anggota->urutan }}</span>
-                            <span class="font-semibold text-mountain-700">{{ $anggota->nama }}</span>
+                        <div class="flex items-center gap-2.5 text-xs py-2 px-3 bg-gray-50 border border-gray-200 rounded-lg">
+                            <span class="w-5 h-5 bg-emerald-100 text-emerald-800 font-bold rounded flex items-center justify-center text-[10px] flex-shrink-0 border border-emerald-300">
+                                {{ $loop->iteration }}
+                            </span>
+                            <span class="font-semibold text-gray-800 leading-tight truncate">{{ $anggota->nama }}</span>
                         </div>
                     @endforeach
                 </div>
             </div>
 
-            <!-- Ticket Number instead of barcode -->
-            <div class="pt-6 border-t border-mountain-100 flex flex-col items-center justify-center gap-1">
-                <span class="text-[9px] text-mountain-400 uppercase tracking-widest font-bold">Nomor Tiket Masuk</span>
-                <span class="text-sm text-mountain-800 font-mono font-bold tracking-wider">{{ $eticket->kode_tiket }}</span>
+            <!-- Ticket Number Barcode Header -->
+            <div class="pt-6 border-t border-gray-100 flex flex-col items-center justify-center text-center">
+                <span class="text-[9px] text-gray-400 uppercase tracking-widest font-bold mb-1">Nomor Tiket Masuk</span>
+                <span class="text-base text-gray-900 font-mono font-bold tracking-widest px-4 py-1.5 bg-gray-100 rounded-lg border border-gray-200 block">
+                    {{ $eticket->kode_tiket }}
+                </span>
             </div>
         </div>
 
         <!-- Footer -->
-        <div class="bg-gradient-to-r from-mountain-50 to-forest-50/30 border-t border-mountain-100 p-4 text-center text-[10px] text-mountain-500">
+        <div class="bg-gray-50 border-t border-gray-100 p-4 text-center text-[10px] text-gray-500 font-medium leading-relaxed">
             PENTING: Harap membawa kartu identitas asli (KTP/SIM/Paspor) seluruh anggota saat melakukan verifikasi fisik di Basecamp Cintanagara.
         </div>
     </div>
@@ -156,7 +163,6 @@
 </section>
 
 <!-- Image Conversion Libraries -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script>
 async function downloadEticketImage() {
@@ -179,43 +185,25 @@ async function downloadEticketImage() {
 
     setButtonState(true);
 
-    // 1. Try html-to-image (Supports modern Tailwind CSS v4 & OKLCH colors natively)
-    try {
-        if (typeof htmlToImage !== 'undefined') {
-            const dataUrl = await htmlToImage.toPng(card, {
-                quality: 0.98,
-                pixelRatio: 2,
-                backgroundColor: '#ffffff'
-            });
-            triggerDownload(dataUrl);
-            setButtonState(false);
-            return;
-        }
-    } catch (e) {
-        console.warn('htmlToImage failed, attempting html2canvas fallback...', e);
-    }
-
-    // 2. Fallback: html2canvas
     try {
         if (typeof html2canvas !== 'undefined') {
             const canvas = await html2canvas(card, {
-                scale: 2,
+                scale: 3, // HD quality rendering
                 useCORS: true,
                 backgroundColor: '#ffffff',
-                allowTaint: true
+                allowTaint: false,
+                logging: false
             });
             triggerDownload(canvas.toDataURL('image/png', 1.0));
             setButtonState(false);
             return;
         }
     } catch (e) {
-        console.error('html2canvas fallback failed:', e);
+        console.error('html2canvas rendering error:', e);
     }
 
     setButtonState(false);
-    
-    // 3. Last fallback if browser blocks DOM image rendering
-    if (confirm('Sistem pengunduhan gambar membutuhkan fitur browser modern. Apakah Anda ingin membuka tampilan cetak/PDF?')) {
+    if (confirm('Gagal membuat file gambar. Apakah Anda ingin membuka tampilan cetak/PDF?')) {
         window.print();
     }
 }
