@@ -158,7 +158,8 @@
     </div>
 </section>
 
-<!-- HTML2Canvas Library -->
+<!-- Image Conversion Libraries -->
+<script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
 async function downloadEticketImage() {
@@ -181,39 +182,67 @@ async function downloadEticketImage() {
 
     setButtonState(true);
 
+    // Method 1: htmlToImage (Native browser SVG rendering, 100% supports Tailwind v4 OKLCH colors)
     try {
-        if (typeof html2canvas === 'undefined') {
-            throw new Error('Pustaka gambar belum siap. Silakan periksa koneksi internet.');
+        if (typeof htmlToImage !== 'undefined') {
+            const dataUrl = await htmlToImage.toPng(card, {
+                quality: 1.0,
+                pixelRatio: 2,
+                backgroundColor: '#ffffff'
+            });
+            triggerDownload(dataUrl);
+            setButtonState(false);
+            return;
         }
-
-        const canvas = await html2canvas(card, {
-            scale: 2,
-            useCORS: true,
-            allowTaint: true,
-            backgroundColor: '#ffffff',
-            ignoreFonts: true, // Prevents CORS font load failure on Laravel Vite fonts
-            logging: false,
-            onclone: (clonedDoc) => {
-                const clonedCard = clonedDoc.getElementById('eticket-card');
-                if (clonedCard) {
-                    clonedCard.style.fontFamily = 'system-ui, -apple-system, sans-serif';
-                }
-            }
-        });
-
-        const dataUrl = canvas.toDataURL('image/png', 1.0);
-        const link = document.createElement('a');
-        link.download = 'E-Ticket-Cikuray-{{ $eticket->kode_tiket }}.png';
-        link.href = dataUrl;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        setButtonState(false);
     } catch (e) {
-        console.error('html2canvas error:', e);
-        alert('Gagal mengunduh gambar: ' + (e.message || 'Terjadi kesalahan sistem.'));
-        setButtonState(false);
+        console.warn('htmlToImage method failed:', e);
     }
+
+    // Method 2: html2canvas with OKLCH CSS Sanitizer
+    try {
+        if (typeof html2canvas !== 'undefined') {
+            const canvas = await html2canvas(card, {
+                scale: 2,
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: '#ffffff',
+                ignoreFonts: true,
+                logging: false,
+                onclone: (clonedDoc) => {
+                    // Replace OKLCH colors in style tags to prevent html2canvas color parser error
+                    const styleElements = clonedDoc.querySelectorAll('style');
+                    styleElements.forEach(style => {
+                        if (style.textContent) {
+                            style.textContent = style.textContent.replace(/oklch\([^)]+\)/g, '#10b981');
+                        }
+                    });
+                    const clonedCard = clonedDoc.getElementById('eticket-card');
+                    if (clonedCard) {
+                        clonedCard.style.fontFamily = 'system-ui, -apple-system, sans-serif';
+                    }
+                }
+            });
+
+            const dataUrl = canvas.toDataURL('image/png', 1.0);
+            triggerDownload(dataUrl);
+            setButtonState(false);
+            return;
+        }
+    } catch (e) {
+        console.error('html2canvas method failed:', e);
+        alert('Gagal mengunduh gambar: ' + e.message);
+    }
+
+    setButtonState(false);
+}
+
+function triggerDownload(dataUrl) {
+    const link = document.createElement('a');
+    link.download = 'E-Ticket-Cikuray-{{ $eticket->kode_tiket }}.png';
+    link.href = dataUrl;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 }
 </script>
 @endsection
