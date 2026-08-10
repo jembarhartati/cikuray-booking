@@ -142,19 +142,24 @@
         </div>
     </div>
 
-    <!-- Action Buttons (PNG Download) -->
+    <!-- Action Buttons (PNG Download & PDF Print) -->
     <div class="mt-6 flex flex-col sm:flex-row justify-center gap-3 print:hidden">
         <button onclick="downloadEticketImage()" id="btn-download-bottom" class="inline-flex items-center justify-center gap-2.5 px-6 py-3.5 bg-forest-600 hover:bg-forest-700 active:bg-forest-800 text-white font-bold text-sm rounded-2xl shadow-xl hover:shadow-forest-600/30 transition-all duration-200 cursor-pointer transform hover:-translate-y-0.5 w-full sm:w-auto">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
             <span>Simpan Gambar E-Ticket (PNG)</span>
         </button>
+        <button onclick="window.print()" class="inline-flex items-center justify-center gap-2.5 px-5 py-3.5 bg-mountain-100 hover:bg-mountain-200 text-mountain-800 font-bold text-sm rounded-2xl transition-all duration-200 cursor-pointer w-full sm:w-auto">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H7a2 2 0 00-2 2v4h10z"/></svg>
+            <span>Cetak / PDF</span>
+        </button>
     </div>
 </section>
 
-<!-- HTML2Canvas CDN for PNG download -->
+<!-- Image Conversion Libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script>
-function downloadEticketImage() {
+async function downloadEticketImage() {
     const card = document.getElementById('eticket-card');
     const btnTop = document.getElementById('btn-download-top');
     const btnBottom = document.getElementById('btn-download-bottom');
@@ -162,34 +167,66 @@ function downloadEticketImage() {
     const setButtonState = (loading) => {
         if (btnTop) {
             btnTop.disabled = loading;
-            btnTop.querySelector('span').innerText = loading ? '⏳ Mengunduh...' : 'Download Gambar (PNG)';
+            const span = btnTop.querySelector('span');
+            if (span) span.innerText = loading ? '⏳ Mengunduh...' : 'Download Gambar (PNG)';
         }
         if (btnBottom) {
             btnBottom.disabled = loading;
-            btnBottom.querySelector('span').innerText = loading ? '⏳ Mengunduh Gambar...' : 'Simpan Gambar E-Ticket (PNG)';
+            const span = btnBottom.querySelector('span');
+            if (span) span.innerText = loading ? '⏳ Mengunduh Gambar...' : 'Simpan Gambar E-Ticket (PNG)';
         }
     };
 
     setButtonState(true);
 
-    html2canvas(card, {
-        scale: 3, // High DPI for crisp text & borders on smartphone screens
-        useCORS: true,
-        backgroundColor: '#ffffff',
-        logging: false
-    }).then(canvas => {
-        const link = document.createElement('a');
-        link.download = 'E-Ticket-Cikuray-{{ $eticket->kode_tiket }}.png';
-        link.href = canvas.toDataURL('image/png', 1.0);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        setButtonState(false);
-    }).catch(err => {
-        console.error(err);
-        alert('Gagal membuat gambar E-Ticket. Silakan coba beberapa saat lagi.');
-        setButtonState(false);
-    });
+    // 1. Try html-to-image (Supports modern Tailwind CSS v4 & OKLCH colors natively)
+    try {
+        if (typeof htmlToImage !== 'undefined') {
+            const dataUrl = await htmlToImage.toPng(card, {
+                quality: 0.98,
+                pixelRatio: 2,
+                backgroundColor: '#ffffff'
+            });
+            triggerDownload(dataUrl);
+            setButtonState(false);
+            return;
+        }
+    } catch (e) {
+        console.warn('htmlToImage failed, attempting html2canvas fallback...', e);
+    }
+
+    // 2. Fallback: html2canvas
+    try {
+        if (typeof html2canvas !== 'undefined') {
+            const canvas = await html2canvas(card, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: '#ffffff',
+                allowTaint: true
+            });
+            triggerDownload(canvas.toDataURL('image/png', 1.0));
+            setButtonState(false);
+            return;
+        }
+    } catch (e) {
+        console.error('html2canvas fallback failed:', e);
+    }
+
+    setButtonState(false);
+    
+    // 3. Last fallback if browser blocks DOM image rendering
+    if (confirm('Sistem pengunduhan gambar membutuhkan fitur browser modern. Apakah Anda ingin membuka tampilan cetak/PDF?')) {
+        window.print();
+    }
+}
+
+function triggerDownload(dataUrl) {
+    const link = document.createElement('a');
+    link.download = 'E-Ticket-Cikuray-{{ $eticket->kode_tiket }}.png';
+    link.href = dataUrl;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 }
 </script>
 
