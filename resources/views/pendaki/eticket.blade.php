@@ -5,13 +5,19 @@
 @section('content')
 <section class="hero-section py-8 md:py-10">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 animate-fade-in-up">
-        <div class="text-white">
-            <a href="{{ route('pendaki.booking.show', $eticket->booking) }}" class="inline-flex items-center gap-1.5 text-forest-300 hover:text-white text-sm font-medium transition-colors mb-3">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                Kembali ke Detail Booking
-            </a>
-            <h2 class="text-3xl font-display font-extrabold">E-Ticket Digital</h2>
-            <p class="text-mountain-300 text-sm mt-1">Tunjukkan e-ticket ini ke petugas loket basecamp Cintanagara.</p>
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-white">
+            <div>
+                <a href="{{ route('pendaki.booking.show', $eticket->booking) }}" class="inline-flex items-center gap-1.5 text-forest-300 hover:text-white text-sm font-medium transition-colors mb-3 print:hidden">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                    Kembali ke Detail Booking
+                </a>
+                <h2 class="text-3xl font-display font-extrabold">E-Ticket Digital</h2>
+                <p class="text-mountain-300 text-sm mt-1">Tunjukkan e-ticket ini ke petugas loket basecamp Cintanagara.</p>
+            </div>
+            <button onclick="window.print()" class="print:hidden inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm rounded-xl shadow-lg hover:shadow-emerald-500/25 transition-all duration-200 cursor-pointer self-start sm:self-auto">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H7a2 2 0 00-2 2v4h10z"/></svg>
+                Cetak / Download PDF
+            </button>
         </div>
     </div>
 </section>
@@ -134,6 +140,14 @@
         <div class="bg-gradient-to-r from-mountain-50 to-forest-50/30 border-t border-mountain-100 p-4 text-center text-[10px] text-mountain-500">
             PENTING: Harap membawa kartu identitas asli (KTP/SIM/Paspor) seluruh anggota saat melakukan verifikasi fisik di Basecamp Cintanagara.
         </div>
+    </div>
+
+    <!-- Action Buttons (Print / Download) -->
+    <div class="mt-6 flex justify-center print:hidden">
+        <button onclick="window.print()" class="inline-flex items-center justify-center gap-2.5 px-6 py-3 bg-forest-600 hover:bg-forest-700 text-white font-bold text-sm rounded-2xl shadow-xl hover:shadow-forest-600/30 transition-all duration-200 cursor-pointer transform hover:-translate-y-0.5">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H7a2 2 0 00-2 2v4h10z"/></svg>
+            Cetak / Simpan PDF E-Ticket
+        </button>
     </div>
 </section>
 
