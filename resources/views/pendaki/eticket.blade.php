@@ -183,9 +183,7 @@ async function downloadEticketImage() {
 
     try {
         if (typeof html2canvas === 'undefined') {
-            alert('Pustaka pengunduhan gambar sedang dimuat. Silakan klik lagi dalam 2 detik.');
-            setButtonState(false);
-            return;
+            throw new Error('Pustaka gambar belum siap. Silakan periksa koneksi internet.');
         }
 
         const canvas = await html2canvas(card, {
@@ -193,7 +191,14 @@ async function downloadEticketImage() {
             useCORS: true,
             allowTaint: true,
             backgroundColor: '#ffffff',
-            logging: false
+            ignoreFonts: true, // Prevents CORS font load failure on Laravel Vite fonts
+            logging: false,
+            onclone: (clonedDoc) => {
+                const clonedCard = clonedDoc.getElementById('eticket-card');
+                if (clonedCard) {
+                    clonedCard.style.fontFamily = 'system-ui, -apple-system, sans-serif';
+                }
+            }
         });
 
         const dataUrl = canvas.toDataURL('image/png', 1.0);
@@ -206,7 +211,7 @@ async function downloadEticketImage() {
         setButtonState(false);
     } catch (e) {
         console.error('html2canvas error:', e);
-        alert('Gagal mengunduh gambar. Silakan coba kembali.');
+        alert('Gagal mengunduh gambar: ' + (e.message || 'Terjadi kesalahan sistem.'));
         setButtonState(false);
     }
 }
